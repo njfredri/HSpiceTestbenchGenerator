@@ -1,0 +1,50 @@
+{
+    "circuit_input" : "nand_gate.sp",
+    "dut_name" : "nand_gate",
+    "timescale": "ns",
+    "VDD": "1.8",
+    "VSS": "0",
+    "1_voltage": "1",
+    "0_voltage": "0",
+    "transition_values": {
+        "setup_time": "0.5"
+    },
+    "signals": {
+        "A": [
+            {
+                "time": "0",
+                "value": "0"
+            },
+            {
+                "time": "20",
+                "value": "1"
+            },
+            {
+                "time": "30",
+                "value": "0"
+            },
+            {
+                "time": "40",
+                "value": "1"
+            }
+        ],
+        "B":[
+            {
+                "time": "0",
+                "value": "0"
+            },
+            {
+                "time": "20",
+                "value": "0"
+            },
+            {
+                "time": "30",
+                "value": "1"
+            },
+            {
+                "time": "40",
+                "value": "1"
+            }
+        ]
+    }
+}
