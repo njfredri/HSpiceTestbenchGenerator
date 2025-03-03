@@ -77,6 +77,18 @@ def generateHspiceTestbench(input, tbout):
         count += 1
         
 
+    timestep = str(tbinfo['timestep']) 
+    timeend = str(tbinfo['timeend'])
+    if timescale not in timestep: timestep+=timescale
+    if timescale not in timeend: timeend+=timescale
+
+    trans = "\n.tran " + timestep + ' ' + timeend
+    tbLines.append(trans + ' 0 ' + timestep)
+    tbLines.append(".probe V(*) I(*)")
+    tbLines.append(".print tran V(A) V(B)")
+    tbLines.append(".option post=2 nopage noplot probe")
+    tbLines.append(".end")
+
     tbout = open(tbout, 'w+')
     tbout.write('\n'.join(tbLines))
 
