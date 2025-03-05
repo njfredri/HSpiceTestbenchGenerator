@@ -1,5 +1,7 @@
 * 2-Input NAND Gate Subcircuit using CMOS
-.include "ptm_22nm_bulk_hp.l"
+.lib "ptm_22nm_bulk_hp.l" 22NM_BULK_HP
+
+.endl 
 
 .SUBCKT nand_gate A B Y VDD VSS
 * PMOS Pull-up Network
