@@ -5,6 +5,7 @@ rm *.st0
 rm *.tr0
 rm *.tr0.lis
 rm *.csv
+rm *.pa0
 
 python generateTestbench.py
 hspice tb.sp > output.txt

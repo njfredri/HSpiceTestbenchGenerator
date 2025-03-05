@@ -103,8 +103,8 @@ def generateHspiceTestbench(input, tbout):
     print(tbLines)
 
     count = 1
-    for key in tbinfo['signals'].keys():
-        signals = tbinfo['signals'][key]
+    for key in tbinfo['input_signals'].keys():
+        signals = tbinfo['input_signals'][key]
         print(key, signals)
         pwl = generatePWL(signals, timescale, vdd, setuptime)
         print(pwl)
