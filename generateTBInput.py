@@ -81,9 +81,11 @@ def generateTBInput(infile, outfile):
         #go through the number string and remove any unneccessary 0's 
         if '.' in scaledtimestr:
             endindex = len(scaledtimestr)-1
-            while (scaledtimestr[endindex]=='0' or scaledtimestr[endindex]=='.') and (endindex > 0):
+            while (scaledtimestr[endindex]=='0') and (endindex > 0):
                 endindex -= 1
-            scaledtimestr = scaledtimestr[0:endindex+1]
+                if scaledtimestr[endindex]=='.': #only change if you find the decimal point
+                    scaledtimestr = scaledtimestr[0:endindex]
+                    break
         newtime.append(scaledtimestr)
 
     #TODO: make the input signals automatic when file format is changed
@@ -98,6 +100,8 @@ def generateTBInput(infile, outfile):
             #loop through and add the list to the dictionary
             for i in range(len(signalValues[key])):
                 tbinfo['input_signals'][key].append({'time': newtime[i], key: signalValues[key][i]})
+            sorted_signals = sorted(tbinfo['input_signals'][key], key=lambda x: float(x['time'])) #sort by time
+            tbinfo['input_signals'][key] = sorted_signals
         else:
             if key not in tbinfo['output_signals'].keys():
                 tbinfo['output_signals'][key] = []
