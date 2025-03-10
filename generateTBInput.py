@@ -9,10 +9,7 @@ def extractSignalNames(line: str, delimiter:str = '_bus*num*_'):
     signals = {}
     for col in columns:
         words = col.strip().split('=')
-        # print(words)
         signalName = words[0]
-        # if signalName.lower() == 'time':
-        #     continue
         value = words[1]
         bitsize = len(value)
         if bitsize <= 1:
@@ -30,7 +27,6 @@ def extractSignalValues(line: str, signalDef: dict, ignoreLength = ["time"]):
     sigvals = {}
     for col in columns:
         words = col.strip().split('=')
-        # print(words)
         signalName = words[0]
         value = words[1]
         # bitsizecheck = len(signalDef[signalName])
@@ -42,28 +38,66 @@ def extractSignalValues(line: str, signalDef: dict, ignoreLength = ["time"]):
             for i in range(bitsize):
                 subsigname = signalDef[signalName][i]
                 sigvals[subsigname] = value[i]
-    # print(sigvals)
     return sigvals
 
+def removeSpacesNearEquals(string: str):
+    while '= ' in string:
+        string = string.replace('= ', '=')
+    while ' =' in string:
+        string = string.replace(' =', '=')
+    return string
 
-def generateTBInput(infile, outfile):
+def extractModelValues(sp_model):
+    info = {}
+    model = open(sp_model)
+    lines = model.readlines()
+    model.close()
+    #get the nominal vdd
+    for line in lines:
+        # print(line)
+        if 'nom' in line.lower():
+            if 'vdd' in line.lower():
+                info['vdd'] = line.split('=')[1].strip()
+    #not efficient, but idc
+    model = open(sp_model)
+    full = model.read()
+    models = full.split('.model')[1:]
+    info['models'] = []
+    for model in models:
+        info['models'].append(modelInfo(model=model))
+    return info
+
+def modelInfo(model:str):
+    info = {}
+    modelc = str(model)
+    modelc = removeSpacesNearEquals(modelc)
+    words = modelc.split()
+    
+    for word in words: #loop through to find the various threshold voltages
+        if '=' in word:
+            # print(word)
+            if 'vth' in word.lower():
+                sides = word.split('=')
+                info['threshold_voltage'] = float(sides[-1]) 
+
+    info['name'] = words[0]
+    return info
+
+def generateTBInput(infile, outfile, sp_model, timestep, timescaleunits='ns'):
     temp = open(infile)
     lines = temp.readlines()
     temp.close()
-
 
     #extract the signal names
     signaldef = extractSignalNames(lines[0])
     signalValues = {}
     for line in lines:
         linevals = extractSignalValues(line, signaldef)
-        print(linevals)
         for key in linevals.keys():
             if key in signalValues.keys():
                 signalValues[key].append(linevals[key])
             else:
                 signalValues[key] = [linevals[key]]
-    # print(signalValues)
     tbinfo = {}
     tbinfo['input_signals'] = {}
     tbinfo['output_signals'] = {}
@@ -87,7 +121,6 @@ def generateTBInput(infile, outfile):
                     scaledtimestr = scaledtimestr[0:endindex]
                     break
         newtime.append(scaledtimestr)
-
     #TODO: make the input signals automatic when file format is changed
     input_signals = ['clk', 'x', 'y', 'ce_alu']
 
@@ -109,9 +142,27 @@ def generateTBInput(infile, outfile):
             for i in range(len(signalValues[key])):
                 tbinfo['output_signals'][key].append({'time': newtime[i], key: signalValues[key][i]})
 
+    #loop through the times and determine how long to simulate
+    sim_length = 0    
+    for time in newtime:
+        t = float(time)
+        if(t > sim_length):
+            sim_length = t
+    sim_length += 5 #add in a constant to hold out any changes
+    tbinfo['timeend'] = str(sim_length)
+    tbinfo['timestep'] = str(timestep)
+    tbinfo['timescale'] = timescaleunits
+
+    #add voltage info
+    modelInfo = modelInfo(sp_model)
+    tbinfo['VDD'] = modelInfo['vdd']
+    tbinfo['VSS'] = '0'
+
     #write the tbinfo to json
     with open(outfile, 'w+') as out:
         json.dump(tbinfo, out, indent=4)
 
 
-generateTBInput("Alu_times.txt", "output.json")
+generateTBInput("Alu_times.txt", "output.json", "ptm_22nm_bulk_hp.l", timestep=0.5)
+
+extractModelValues("ptm_22nm_bulk_hp.l")
