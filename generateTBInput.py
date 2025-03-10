@@ -9,10 +9,7 @@ def extractSignalNames(line: str, delimiter:str = '_bus*num*_'):
     signals = {}
     for col in columns:
         words = col.strip().split('=')
-        # print(words)
         signalName = words[0]
-        # if signalName.lower() == 'time':
-        #     continue
         value = words[1]
         bitsize = len(value)
         if bitsize <= 1:
@@ -30,7 +27,6 @@ def extractSignalValues(line: str, signalDef: dict, ignoreLength = ["time"]):
     sigvals = {}
     for col in columns:
         words = col.strip().split('=')
-        # print(words)
         signalName = words[0]
         value = words[1]
         # bitsizecheck = len(signalDef[signalName])
@@ -42,7 +38,6 @@ def extractSignalValues(line: str, signalDef: dict, ignoreLength = ["time"]):
             for i in range(bitsize):
                 subsigname = signalDef[signalName][i]
                 sigvals[subsigname] = value[i]
-    # print(sigvals)
     return sigvals
 
 
@@ -51,19 +46,18 @@ def generateTBInput(infile, outfile):
     lines = temp.readlines()
     temp.close()
 
+    sim_length = 0
 
     #extract the signal names
     signaldef = extractSignalNames(lines[0])
     signalValues = {}
     for line in lines:
         linevals = extractSignalValues(line, signaldef)
-        print(linevals)
         for key in linevals.keys():
             if key in signalValues.keys():
                 signalValues[key].append(linevals[key])
             else:
                 signalValues[key] = [linevals[key]]
-    # print(signalValues)
     tbinfo = {}
     tbinfo['input_signals'] = {}
     tbinfo['output_signals'] = {}
@@ -85,7 +79,8 @@ def generateTBInput(infile, outfile):
                 endindex -= 1
             scaledtimestr = scaledtimestr[0:endindex+1]
         newtime.append(scaledtimestr)
-
+    sim_length = newtime[-1]
+    print(sim_length)
     #TODO: make the input signals automatic when file format is changed
     input_signals = ['clk', 'x', 'y', 'ce_alu']
 
